@@ -1,142 +1,201 @@
 import React, { useState } from 'react';
-import { useApp } from '../context/AppContext';
-import { X, Mail, Lock, User as UserIcon, ShieldCheck } from 'lucide-react';
-import { INITIAL_USER, INITIAL_ADMIN_USER } from '../data/initialData';
+import {
+  CheckCircle2,
+  Lock,
+  Mail,
+  User as UserIcon,
+  X,
+} from 'lucide-react';
+import { User } from '../types';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onLogin: (email: string) => void;
+  onRegister: (data: { email: string; firstName: string; lastName: string }) => void;
+  onQuickSelectUser: (userId: string) => void;
+  users: User[];
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
-  const { setActiveRole, showNotification } = useApp();
-
+export const AuthModal: React.FC<AuthModalProps> = ({
+  isOpen,
+  onClose,
+  onLogin,
+  onRegister,
+  onQuickSelectUser,
+  users,
+}) => {
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>('login');
-  const [email, setEmail] = useState('alexandra@pureshque.ru');
-  const [password, setPassword] = useState('••••••••');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [message, setMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (mode === 'login') {
-      if (email.toLowerCase().includes('admin')) {
-        setActiveRole('admin');
-        showNotification('Успешный вход: Главный Администратор');
-      } else {
-        setActiveRole('user');
-        showNotification('Успешный вход: Александра Смирнова');
+      if (!email.trim() || !password.trim()) {
+        setMessage('Пожалуйста, введите email и пароль');
+        return;
       }
+      onLogin(email.trim());
+      onClose();
     } else if (mode === 'register') {
-      showNotification(`Регистрация успешна! На почту ${email} отправлена ссылка для подтверждения.`);
-      setActiveRole('user');
-    } else {
-      showNotification(`Инструкция по восстановлению пароля отправлена на ${email}`);
+      if (!email.trim() || !firstName.trim() || !password.trim()) {
+        setMessage('Заполните все обязательные поля');
+        return;
+      }
+      onRegister({
+        email: email.trim(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim() || 'Пользователь',
+      });
+      setMessage('Письмо с подтверждением отправлено на ваш email!');
+      setTimeout(() => onClose(), 1200);
+    } else if (mode === 'forgot') {
+      setMessage(`Инструкция по восстановлению пароля отправлена на ${email}`);
+      setTimeout(() => {
+        setMessage(null);
+        setMode('login');
+      }, 2000);
     }
-    onClose();
   };
 
-  const handleOAuth = (provider: 'VK' | 'Яндекс') => {
-    setActiveRole('user');
-    showNotification(`Авторизация через ${provider} ID успешно выполнена!`);
-    onClose();
-  };
-
-  const handleQuickLogin = (role: 'user' | 'admin') => {
-    setActiveRole(role);
+  const handleOAuth = (provider: 'VK' | 'Yandex') => {
+    // Simulate OAuth callback
+    const targetUser = users.find((u) => u.provider === provider.toLowerCase()) || users[0];
+    onQuickSelectUser(targetUser.id);
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-[#E2EBDC] space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-[#EDF3E8]">
-          <h2 className="text-lg font-bold text-[#1E3A1E]">
-            {mode === 'login' ? 'Вход в Pureshque' : mode === 'register' ? 'Регистрация аккаунта' : 'Восстановление доступа'}
-          </h2>
-          <button onClick={onClose} className="text-[#A0AEC0] hover:text-[#4A5568] text-sm cursor-pointer">
-            ✕
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#CBD5E1] animate-in fade-in-50 zoom-in-95 duration-150">
+        <div className="flex items-center justify-between pb-3 border-b border-[#EDF2F7]">
+          <div>
+            <h3 className="text-lg font-bold text-[#1A202C]">
+              {mode === 'login' && 'Вход в аккаунт'}
+              {mode === 'register' && 'Регистрация в Pureshque'}
+              {mode === 'forgot' && 'Восстановление пароля'}
+            </h3>
+            <p className="text-xs text-[#718096]">
+              {mode === 'login' && 'Введите ваши учетные данные'}
+              {mode === 'register' && 'Создайте учетную запись для сохранения дневника'}
+              {mode === 'forgot' && 'Введите email, указанный при регистрации'}
+            </p>
+          </div>
+          <button onClick={onClose} className="p-1 rounded-lg text-[#A0AEC0] hover:text-[#4A5568]">
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Demo Fast Account Switcher Buttons */}
-        <div className="p-3 bg-[#FAFDF7] border border-[#DCE8D4] rounded-xl text-xs space-y-2">
-          <div className="text-[11px] font-semibold text-[#5D705D]">
-            Быстрый вход для проверки функционала:
-          </div>
-          <div className="grid grid-cols-2 gap-2">
+        {/* Quick Demo Selector */}
+        <div className="mt-4 p-3 rounded-xl bg-[#FAF8F5] border border-[#EAEFE8]">
+          <span className="text-[11px] font-bold text-[#546E7A] uppercase block mb-1.5">
+            Быстрый вход для проверки (демо):
+          </span>
+          <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => handleQuickLogin('user')}
-              className="py-1.5 px-2 bg-white hover:bg-[#F1F8EC] border border-[#C8E6C9] rounded-lg text-[#2E7D32] font-semibold flex items-center justify-center gap-1 cursor-pointer"
+              onClick={() => {
+                onQuickSelectUser('user-1');
+                onClose();
+              }}
+              className="flex-1 py-1.5 px-2 rounded-lg bg-white border border-[#CBD5E1] hover:border-[#81C784] text-xs font-semibold text-[#1B5E20] shadow-2xs"
             >
-              <UserIcon className="w-3.5 h-3.5" />
-              <span>Александра (User)</span>
+              Александра (Юзер)
             </button>
             <button
               type="button"
-              onClick={() => handleQuickLogin('admin')}
-              className="py-1.5 px-2 bg-white hover:bg-[#F1F8EC] border border-[#C8E6C9] rounded-lg text-[#2E7D32] font-semibold flex items-center justify-center gap-1 cursor-pointer"
+              onClick={() => {
+                onQuickSelectUser('user-admin');
+                onClose();
+              }}
+              className="flex-1 py-1.5 px-2 rounded-lg bg-white border border-[#CBD5E1] hover:border-[#FFB74D] text-xs font-semibold text-[#E65100] shadow-2xs"
             >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Администратор</span>
+              Иван (Админ)
             </button>
           </div>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-3.5">
+        {/* Social OAuth Buttons */}
+        {mode !== 'forgot' && (
+          <div className="mt-4 space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => handleOAuth('VK')}
+                className="py-2 px-3 rounded-xl bg-[#0077FF] hover:bg-[#0066DD] text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs"
+              >
+                <span>ВК ID</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleOAuth('Yandex')}
+                className="py-2 px-3 rounded-xl bg-[#FC3F1D] hover:bg-[#E53515] text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs"
+              >
+                <span>Яндекс ID</span>
+              </button>
+            </div>
+            <div className="relative flex py-2 items-center">
+              <div className="grow border-t border-gray-200"></div>
+              <span className="shrink mx-3 text-[11px] text-gray-400">или через email</span>
+              <div className="grow border-t border-gray-200"></div>
+            </div>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-3.5 mt-2">
           {mode === 'register' && (
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs font-semibold text-[#4A5568] mb-1">Имя</label>
+                <label className="block text-[11px] font-medium text-[#4A5568] mb-1">Имя *</label>
                 <input
                   type="text"
                   required
-                  placeholder="Иван"
+                  placeholder="Александра"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-[#DCE8D4] rounded-xl focus:outline-none focus:border-[#4CAF50]"
+                  className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-xs"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#4A5568] mb-1">Фамилия</label>
+                <label className="block text-[11px] font-medium text-[#4A5568] mb-1">Фамилия</label>
                 <input
                   type="text"
-                  required
-                  placeholder="Иванов"
+                  placeholder="Смирнова"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-[#DCE8D4] rounded-xl focus:outline-none focus:border-[#4CAF50]"
+                  className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-xs"
                 />
               </div>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-[#4A5568] mb-1">Электронная почта (Email) *</label>
+            <label className="block text-[11px] font-medium text-[#4A5568] mb-1">Email *</label>
             <input
               type="email"
               required
-              placeholder="example@mail.ru"
+              placeholder="alexandra@pureshque.ru"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 text-xs border border-[#DCE8D4] rounded-xl focus:outline-none focus:border-[#4CAF50]"
+              className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-xs"
             />
           </div>
 
           {mode !== 'forgot' && (
             <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className="block text-xs font-semibold text-[#4A5568]">Пароль *</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[11px] font-medium text-[#4A5568]">Пароль *</label>
                 {mode === 'login' && (
                   <button
                     type="button"
                     onClick={() => setMode('forgot')}
-                    className="text-[11px] text-[#2E7D32] hover:underline cursor-pointer"
+                    className="text-[10px] text-[#2E7D32] hover:underline"
                   >
                     Забыли пароль?
                   </button>
@@ -145,67 +204,54 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               <input
                 type="password"
                 required
-                placeholder="Минимум 8 символов"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 text-xs border border-[#DCE8D4] rounded-xl focus:outline-none focus:border-[#4CAF50]"
+                className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-xs"
               />
+            </div>
+          )}
+
+          {message && (
+            <div className="p-2.5 rounded-xl bg-amber-50 text-amber-800 text-xs font-medium">
+              {message}
             </div>
           )}
 
           <button
             type="submit"
-            className="w-full py-2.5 bg-[#4CAF50] hover:bg-[#43A047] text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
+            className="w-full py-2.5 rounded-xl bg-[#4CAF50] hover:bg-[#43A047] text-white text-xs font-bold shadow-sm transition-all"
           >
-            {mode === 'login' ? 'Войти в личный кабинет' : mode === 'register' ? 'Зарегистрироваться' : 'Отправить ссылку для сброса'}
+            {mode === 'login' && 'Войти в личный кабинет'}
+            {mode === 'register' && 'Зарегистрироваться'}
+            {mode === 'forgot' && 'Отправить ссылку на сброс'}
           </button>
         </form>
 
-        {/* OAuth Social Logins */}
-        <div className="space-y-2 pt-2 border-t border-[#EDF3E8]">
-          <div className="text-center text-[11px] text-[#718096]">Или войдите через социальные сервисы</div>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => handleOAuth('VK')}
-              className="py-2 px-3 bg-[#0077FF]/10 hover:bg-[#0077FF]/20 text-[#0077FF] border border-[#0077FF]/30 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
-            >
-              ВКонтакте ID
-            </button>
-            <button
-              type="button"
-              onClick={() => handleOAuth('Яндекс')}
-              className="py-2 px-3 bg-[#FC3F1D]/10 hover:bg-[#FC3F1D]/20 text-[#FC3F1D] border border-[#FC3F1D]/30 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
-            >
-              Яндекс ID
-            </button>
-          </div>
-        </div>
-
-        {/* Bottom Switcher */}
-        <div className="text-center text-xs text-[#718096] pt-1">
+        {/* Footer Mode Switcher */}
+        <div className="mt-4 pt-3 border-t border-[#EDF2F7] text-center text-xs text-[#718096]">
           {mode === 'login' ? (
-            <>
+            <span>
               Нет аккаунта?{' '}
               <button
                 type="button"
                 onClick={() => setMode('register')}
-                className="text-[#2E7D32] font-semibold hover:underline cursor-pointer"
+                className="text-[#2E7D32] font-semibold hover:underline"
               >
-                Зарегистрироваться
+                Создать профиль
               </button>
-            </>
+            </span>
           ) : (
-            <>
+            <span>
               Уже есть аккаунт?{' '}
               <button
                 type="button"
                 onClick={() => setMode('login')}
-                className="text-[#2E7D32] font-semibold hover:underline cursor-pointer"
+                className="text-[#2E7D32] font-semibold hover:underline"
               >
                 Войти
               </button>
-            </>
+            </span>
           )}
         </div>
       </div>

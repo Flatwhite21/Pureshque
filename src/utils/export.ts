@@ -1,188 +1,391 @@
-import * as XLSX from 'xlsx';
-import { DiaryEntry, Profile, Recipe, User } from '../types';
+import { DiaryEntry, Profile, Recipe, WeightEntry } from '../types';
+
+export function downloadFile(content: string, filename: string, mimeType: string) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 /**
- * Экспорт рецептов в реальный файл Excel (.xlsx)
+ * Generates an Excel-compatible CSV file (with UTF-8 BOM) for recipes
  */
-export function exportRecipesToExcel(recipes: Recipe[], filename = 'pureshque_recipes.xlsx') {
-  const flatRows = recipes.map((r, index) => ({
-    '№': index + 1,
-    'Название блюда': r.title,
-    'Описание': r.description,
-    'Автор': r.authorName,
-    'Количество порций': r.servings,
-    'Общий вес (г)': r.totalWeightG,
-    'Калории (всего)': r.totalCalories,
-    'Белки (всего, г)': r.totalProteins,
-    'Жиры (всего, г)': r.totalFats,
-    'Углеводы (всего, г)': r.totalCarbs,
-    'Калории на 100г': r.caloriesPer100g,
-    'Белки на 100г': r.proteinsPer100g,
-    'Жиры на 100г': r.fatsPer100g,
-    'Углеводы на 100г': r.carbsPer100g,
-    'Калории на порцию': r.caloriesPerServing,
-    'Белки на порцию': r.proteinsPerServing,
-    'Жиры на порцию': r.fatsPerServing,
-    'Углеводы на порцию': r.carbsPerServing,
-    'Состав (ингредиенты)': r.ingredients.map(i => `${i.productName} (${i.amountG}г)`).join('; '),
-    'Дата создания': r.createdAt.slice(0, 10),
-  }));
-
-  const worksheet = XLSX.utils.json_to_sheet(flatRows);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Рецепты');
-
-  // Установка ширины колонок
-  worksheet['!cols'] = [
-    { wch: 5 },
-    { wch: 30 },
-    { wch: 40 },
-    { wch: 18 },
-    { wch: 12 },
-    { wch: 14 },
-    { wch: 14 },
-    { wch: 14 },
-    { wch: 14 },
-    { wch: 14 },
-    { wch: 14 },
-    { wch: 14 },
-    { wch: 14 },
-    { wch: 14 },
-    { wch: 14 },
-    { wch: 14 },
-    { wch: 14 },
-    { wch: 14 },
-    { wch: 50 },
-    { wch: 14 },
+export function exportRecipesToCSV(recipes: Recipe[]): void {
+  // UTF-8 BOM for Microsoft Excel Russian text encoding
+  const BOM = '\uFEFF';
+  const headers = [
+    'Название блюда',
+    'Автор',
+    'Порций',
+    'Общий вес (г)',
+    'Калории (всего)',
+    'Белки (всего)',
+    'Жиры (всего)',
+    'Углеводы (всего)',
+    'Ккал / 100г',
+    'Б / 100г',
+    'Ж / 100г',
+    'У / 100г',
+    'Ккал / порция',
+    'Б / порция',
+    'Ж / порция',
+    'У / порция',
+    'Ингредиенты',
   ];
 
-  XLSX.writeFile(workbook, filename);
+  const rows = recipes.map((r) => {
+    const ingredientsList = r.ingredients
+      .map((i) => `${i.productName} (${i.amountG}г)`)
+      .join('; ');
+
+    return [
+      `"${r.title.replace(/"/g, '""')}"`,
+      `"${r.authorName}"`,
+      r.servings,
+      r.totalWeightG,
+      r.totalCalories,
+      r.totalProteins,
+      r.totalFats,
+      r.totalCarbs,
+      r.caloriesPer100g,
+      r.proteinsPer100g,
+      r.fatsPer100g,
+      r.carbsPer100g,
+      r.caloriesPerServing,
+      r.proteinsPerServing,
+      r.fatsPerServing,
+      r.carbsPerServing,
+      `"${ingredientsList.replace(/"/g, '""')}"`,
+    ].join(';');
+  });
+
+  const csvContent = BOM + [headers.join(';'), ...rows].join('\r\n');
+  const filename = `Pureshque_Рецепты_${new Date().toISOString().slice(0, 10)}.csv`;
+  downloadFile(csvContent, filename, 'text/csv;charset=utf-8;');
 }
 
 /**
- * Экспорт дневника питания в Excel (.xlsx)
+ * Generates printable HTML for Food Diary report and triggers browser print / save to PDF
  */
-export function exportDiaryToExcel(entries: DiaryEntry[], filename = 'pureshque_diary.xlsx') {
-  const flatRows = entries.map((e, index) => ({
-    '№': index + 1,
-    'Дата': e.date,
-    'Приём пищи': e.mealType === 'breakfast' ? 'Завтрак' : e.mealType === 'lunch' ? 'Обед' : e.mealType === 'dinner' ? 'Ужин' : 'Перекус',
-    'Продукт / Блюдо': e.name,
-    'Количество (г)': e.amountG,
-    'Калории (ккал)': e.calories,
-    'Белки (г)': e.proteins,
-    'Жиры (г)': e.fats,
-    'Углеводы (г)': e.carbs,
-  }));
-
-  const worksheet = XLSX.utils.json_to_sheet(flatRows);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Дневник питания');
-  XLSX.writeFile(workbook, filename);
-}
-
-/**
- * Генерация фирменного HTML-отчёта дневника питания для сохранения в PDF через браузерную печать
- */
-export function generatePrintableDiaryHTML(
-  user: User,
-  profile: Profile,
+export function printDiaryReport(
+  entries: DiaryEntry[],
   date: string,
-  entries: DiaryEntry[]
-) {
-  const totalCalories = entries.reduce((s, e) => s + e.calories, 0);
-  const totalProteins = Number(entries.reduce((s, e) => s + e.proteins, 0).toFixed(1));
-  const totalFats = Number(entries.reduce((s, e) => s + e.fats, 0).toFixed(1));
-  const totalCarbs = Number(entries.reduce((s, e) => s + e.carbs, 0).toFixed(1));
+  profile: Profile,
+  userName: string
+): void {
+  const mealLabels: Record<string, string> = {
+    breakfast: 'Завтрак',
+    lunch: 'Обед',
+    dinner: 'Ужин',
+    snack: 'Перекус',
+  };
 
-  const mealSections = [
-    { type: 'breakfast', title: 'Завтрак' },
-    { type: 'lunch', title: 'Обед' },
-    { type: 'dinner', title: 'Ужин' },
-    { type: 'snack', title: 'Перекусы' },
-  ];
+  const dayTotal = entries.reduce(
+    (acc, curr) => ({
+      calories: acc.calories + curr.calories,
+      proteins: acc.proteins + curr.proteins,
+      fats: acc.fats + curr.fats,
+      carbs: acc.carbs + curr.carbs,
+    }),
+    { calories: 0, proteins: 0, fats: 0, carbs: 0 }
+  );
 
-  return `
-    <div style="font-family: sans-serif; color: #2D3748; padding: 32px; max-width: 800px; margin: 0 auto; background: #fff;">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #81C784; padding-bottom: 16px; margin-bottom: 24px;">
-        <div>
-          <h1 style="margin: 0; color: #2E7D32; font-size: 24px; font-weight: bold;">Pureshque · Дневник питания</h1>
-          <p style="margin: 4px 0 0 0; color: #718096; font-size: 14px;">Отчёт для диетолога и личного контроля</p>
-        </div>
-        <div style="text-align: right; font-size: 13px; color: #718096;">
-          <div><strong>Пользователь:</strong> ${user.firstName} ${user.lastName}</div>
-          <div><strong>Дата:</strong> ${date}</div>
-          <div><strong>Цель:</strong> ${profile.goal === 'lose' ? 'Снижение веса' : profile.goal === 'gain' ? 'Набор массы' : 'Поддержание'}</div>
-        </div>
-      </div>
+  const calProgress = Math.round((dayTotal.calories / profile.dailyCalorieNorm) * 100);
 
-      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; background: #F1F8E9; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-        <div style="text-align: center;">
-          <div style="font-size: 12px; color: #558B2F;">Калории</div>
-          <div style="font-size: 20px; font-weight: bold; color: #2E7D32;">${totalCalories} / ${profile.dailyCalorieNorm}</div>
-        </div>
-        <div style="text-align: center;">
-          <div style="font-size: 12px; color: #558B2F;">Белки</div>
-          <div style="font-size: 20px; font-weight: bold; color: #2E7D32;">${totalProteins}г / ${profile.dailyProteinNorm}г</div>
-        </div>
-        <div style="text-align: center;">
-          <div style="font-size: 12px; color: #558B2F;">Жиры</div>
-          <div style="font-size: 20px; font-weight: bold; color: #2E7D32;">${totalFats}г / ${profile.dailyFatNorm}г</div>
-        </div>
-        <div style="text-align: center;">
-          <div style="font-size: 12px; color: #558B2F;">Углеводы</div>
-          <div style="font-size: 20px; font-weight: bold; color: #2E7D32;">${totalCarbs}г / ${profile.dailyCarbNorm}г</div>
-        </div>
-      </div>
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    alert('Пожалуйста, разрешите всплывающие окна для экспорта PDF');
+    return;
+  }
 
-      ${mealSections
-        .map(section => {
-          const sectionEntries = entries.filter(e => e.mealType === section.type);
-          const mealCalories = sectionEntries.reduce((s, e) => s + e.calories, 0);
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Pureshque — Отчет дневника питания за ${date}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; padding: 30px; color: #333; line-height: 1.5; }
+    .header { border-bottom: 2px solid #81C784; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .logo { font-size: 28px; font-weight: bold; color: #2E7D32; }
+    .subtitle { color: #666; font-size: 14px; }
+    .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+    .summary-card { background: #F1F8E9; border-radius: 8px; padding: 15px; text-align: center; }
+    .summary-value { font-size: 22px; font-weight: bold; color: #2E7D32; }
+    .summary-label { font-size: 12px; color: #555; text-transform: uppercase; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+    th { background: #E8F5E9; color: #2E7D32; text-align: left; padding: 10px; font-size: 13px; }
+    td { padding: 10px; border-bottom: 1px solid #E0E0E0; font-size: 13px; }
+    .meal-header { background: #F5F5F5; font-weight: bold; color: #388E3C; }
+    .footer { margin-top: 40px; font-size: 12px; color: #888; border-top: 1px solid #DDD; padding-top: 15px; display: flex; justify-content: space-between; }
+    @media print {
+      body { padding: 0; }
+      @page { margin: 1.5cm; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="logo">🌿 Pureshque</div>
+      <div class="subtitle">Сервис расчёта КБЖУ и дневник питания</div>
+    </div>
+    <div style="text-align: right;">
+      <strong>Пользователь:</strong> ${userName}<br>
+      <strong>Дата отчёта:</strong> ${date}
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="summary-value">${dayTotal.calories} / ${profile.dailyCalorieNorm}</div>
+      <div class="summary-label">Калории (${calProgress}%)</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-value">${Math.round(dayTotal.proteins)}г / ${profile.dailyProteinNorm}г</div>
+      <div class="summary-label">Белки</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-value">${Math.round(dayTotal.fats)}г / ${profile.dailyFatNorm}г</div>
+      <div class="summary-label">Жиры</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-value">${Math.round(dayTotal.carbs)}г / ${profile.dailyCarbNorm}г</div>
+      <div class="summary-label">Углеводы</div>
+    </div>
+  </div>
+
+  <h3>Детализация рациона по приемам пищи</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Приём пищи / Продукт</th>
+        <th>Количество</th>
+        <th>Калории (ккал)</th>
+        <th>Белки (г)</th>
+        <th>Жиры (г)</th>
+        <th>Углеводы (г)</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${['breakfast', 'lunch', 'dinner', 'snack']
+        .map((mealKey) => {
+          const mealEntries = entries.filter((e) => e.mealType === mealKey);
+          if (mealEntries.length === 0) return '';
+          const mealCalories = mealEntries.reduce((s, e) => s + e.calories, 0);
+          const mealProteins = mealEntries.reduce((s, e) => s + e.proteins, 0);
+          const mealFats = mealEntries.reduce((s, e) => s + e.fats, 0);
+          const mealCarbs = mealEntries.reduce((s, e) => s + e.carbs, 0);
+
           return `
-            <div style="margin-bottom: 20px;">
-              <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #E2E8F0; padding-bottom: 6px; margin-bottom: 8px;">
-                <h3 style="margin: 0; font-size: 16px; color: #2E7D32;">${section.title}</h3>
-                <span style="font-size: 14px; font-weight: bold; color: #4A5568;">${mealCalories} ккал</span>
-              </div>
-              ${
-                sectionEntries.length === 0
-                  ? '<div style="font-size: 13px; color: #A0AEC0; font-style: italic;">Записей нет</div>'
-                  : `
-                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-                  <thead>
-                    <tr style="text-align: left; color: #718096; border-bottom: 1px solid #EDF2F7;">
-                      <th style="padding: 6px 0;">Продукт / Блюдо</th>
-                      <th style="padding: 6px; text-align: right;">Граммы</th>
-                      <th style="padding: 6px; text-align: right;">Калории</th>
-                      <th style="padding: 6px; text-align: right;">Б / Ж / У</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${sectionEntries
-                      .map(
-                        e => `
-                      <tr style="border-bottom: 1px solid #F7FAFC;">
-                        <td style="padding: 6px 0;">${e.name}</td>
-                        <td style="padding: 6px; text-align: right;">${e.amountG}г</td>
-                        <td style="padding: 6px; text-align: right; font-weight: 600;">${e.calories} ккал</td>
-                        <td style="padding: 6px; text-align: right; color: #718096;">${e.proteins}г / ${e.fats}г / ${e.carbs}г</td>
-                      </tr>
-                    `
-                      )
-                      .join('')}
-                  </tbody>
-                </table>
-              `
-              }
-            </div>
+            <tr class="meal-header">
+              <td colspan="2">${mealLabels[mealKey]}</td>
+              <td>${Math.round(mealCalories)} ккал</td>
+              <td>${mealProteins.toFixed(1)} г</td>
+              <td>${mealFats.toFixed(1)} г</td>
+              <td>${mealCarbs.toFixed(1)} г</td>
+            </tr>
+            ${mealEntries
+              .map(
+                (e) => `
+              <tr>
+                <td style="padding-left: 20px;">${e.productName}</td>
+                <td>${e.amountG ? `${e.amountG} г` : `${e.servings} порц.`}</td>
+                <td>${Math.round(e.calories)}</td>
+                <td>${e.proteins.toFixed(1)}</td>
+                <td>${e.fats.toFixed(1)}</td>
+                <td>${e.carbs.toFixed(1)}</td>
+              </tr>
+            `
+              )
+              .join('')}
           `;
         })
         .join('')}
+    </tbody>
+  </table>
 
-      <div style="border-top: 1px solid #E2E8F0; padding-top: 16px; margin-top: 32px; font-size: 12px; color: #A0AEC0; text-align: center;">
-        Сформировано веб-сервисом Pureshque · Разработано для контроля питания и аналитики рациона
-      </div>
-    </div>
+  <div style="margin-top: 30px; padding: 15px; background: #FFF9C4; border-radius: 8px; font-size: 13px;">
+    <strong>Медицинская оговорка:</strong> Данные и расчеты носят информационный характер и сформированы по формуле Миффлина-Сан Жеора. Не заменяют консультацию врача-диетолога.
+  </div>
+
+  <div class="footer">
+    <div>Сформировано в системе Pureshque &bull; ${new Date().toLocaleDateString('ru-RU')}</div>
+    <div>Подпись диетолога / врача: ____________________</div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.print();
+      }, 300);
+    };
+  </script>
+</body>
+</html>
   `;
+
+  printWindow.document.write(html);
+  printWindow.document.close();
+}
+
+/**
+ * Generates printable HTML for Full Analytics Report
+ */
+export function printAnalyticsReport(
+  userName: string,
+  profile: Profile,
+  weights: WeightEntry[],
+  period: string,
+  stats: {
+    avgCalories: number;
+    avgProteins: number;
+    avgFats: number;
+    avgCarbs: number;
+    minCalories: number;
+    maxCalories: number;
+    daysCount: number;
+  }
+): void {
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    alert('Пожалуйста, разрешите всплывающие окна для экспорта PDF');
+    return;
+  }
+
+  const currentWeight = weights.length > 0 ? weights[weights.length - 1].weightKg : profile.weightKg;
+  const startWeight = weights.length > 0 ? weights[0].weightKg : profile.weightKg;
+  const weightDiff = (currentWeight - startWeight).toFixed(1);
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Pureshque — Аналитический отчёт по питанию и весу</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; padding: 35px; color: #222; }
+    .header { border-bottom: 2px solid #4CAF50; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; }
+    .logo { font-size: 26px; font-weight: bold; color: #2E7D32; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0; }
+    .card { background: #F5F7F5; padding: 15px; border-radius: 8px; }
+    .card-title { font-size: 12px; color: #666; text-transform: uppercase; margin-bottom: 5px; }
+    .card-num { font-size: 22px; font-weight: bold; color: #2E7D32; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th { background: #E8F5E9; color: #1B5E20; text-align: left; padding: 10px; font-size: 13px; }
+    td { padding: 10px; border-bottom: 1px solid #EEE; font-size: 13px; }
+    .footer { margin-top: 40px; font-size: 12px; color: #888; border-top: 1px solid #DDD; padding-top: 15px; display: flex; justify-content: space-between; }
+    @media print { body { padding: 0; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="logo">🌿 Pureshque — Аналитика рациона</div>
+      <div>Период отчета: <strong>${period}</strong></div>
+    </div>
+    <div style="text-align: right;">
+      <strong>Пациент / Клиент:</strong> ${userName}<br>
+      <strong>Цель:</strong> ${profile.goal === 'lose' ? 'Снижение веса' : profile.goal === 'gain' ? 'Набор массы' : 'Поддержание'}
+    </div>
+  </div>
+
+  <h3>Сводная статистика потребления</h3>
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">Средняя калорийность</div>
+      <div class="card-num">${stats.avgCalories} ккал</div>
+      <small>Рекомендуемая норма: ${profile.dailyCalorieNorm} ккал</small>
+    </div>
+    <div class="card">
+      <div class="card-title">Среднее БЖУ</div>
+      <div class="card-num">Б: ${stats.avgProteins}г &bull; Ж: ${stats.avgFats}г &bull; У: ${stats.avgCarbs}г</div>
+      <small>Норма: Б ${profile.dailyProteinNorm}г &bull; Ж ${profile.dailyFatNorm}г &bull; У ${profile.dailyCarbNorm}г</small>
+    </div>
+    <div class="card">
+      <div class="card-title">Динамика веса</div>
+      <div class="card-num">${currentWeight} кг (${Number(weightDiff) <= 0 ? weightDiff : `+${weightDiff}`} кг)</div>
+      <small>Старт: ${startWeight} кг</small>
+    </div>
+  </div>
+
+  <h3>Экстремумы за выбранный период</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Показатель</th>
+        <th>Фактическое значение</th>
+        <th>Целевая норма</th>
+        <th>Статус</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Минимальное потребление в день</td>
+        <td><strong>${stats.minCalories} ккал</strong></td>
+        <td>${profile.dailyCalorieNorm} ккал</td>
+        <td>Дефицит зафиксирован</td>
+      </tr>
+      <tr>
+        <td>Максимальное потребление в день</td>
+        <td><strong>${stats.maxCalories} ккал</strong></td>
+        <td>${profile.dailyCalorieNorm} ккал</td>
+        <td>В пределах допустимого диапазона</td>
+      </tr>
+      <tr>
+        <td>Количество дней с записями</td>
+        <td><strong>${stats.daysCount} дн.</strong></td>
+        <td>—</td>
+        <td>Регулярный мониторинг</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>История измерений веса</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Дата взвешивания</th>
+        <th>Вес (кг)</th>
+        <th>Комментарий</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${weights
+        .map(
+          (w) => `
+        <tr>
+          <td>${w.date}</td>
+          <td><strong>${w.weightKg} кг</strong></td>
+          <td>${w.note || '—'}</td>
+        </tr>
+      `
+        )
+        .join('')}
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <div>Сформировано автоматически системой Pureshque &bull; ${new Date().toLocaleDateString('ru-RU')}</div>
+    <div>Диетолог / Эксперт: ____________________</div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.print();
+      }, 300);
+    };
+  </script>
+</body>
+</html>
+  `;
+
+  printWindow.document.write(html);
+  printWindow.document.close();
 }

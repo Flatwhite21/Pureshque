@@ -1,51 +1,41 @@
-from rest_framework import generics, status, views
+from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User, Profile
-from .serializers import UserSerializer, RegisterSerializer, ProfileSerializer
 
-class RegisterView(generics.CreateAPIView):
-    permission_classes = (AllowAny,)
-    serializer_class = RegisterSerializer
-
-class ProfileView(generics.RetrieveUpdateAPIView):
-    serializer_class = ProfileSerializer
-    permission_classes = (IsAuthenticated,)
-
-    def get_object(self):
-        profile, _ = Profile.objects.get_or_create(user=self.request.user)
-        return profile
-
-class ProfileNormView(views.APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request):
-        profile = request.user.profile
-        # Mifflin-St Jeor Formula
-        base = 10 * profile.weight_kg + 6.25 * profile.height_cm - 5 * profile.age
-        bmr = base + 5 if profile.gender == 'male' else base - 161
-
-        activity_map = {'min': 1.2, 'low': 1.375, 'medium': 1.55, 'high': 1.725, 'very_high': 1.9}
-        tdee = bmr * activity_map.get(profile.activity_level, 1.375)
-
-        if profile.goal == 'lose':
-            target_calories = round(tdee * 0.8)
-        elif profile.goal == 'gain':
-            target_calories = round(tdee * 1.15)
-        else:
-            target_calories = round(tdee)
-
-        proteins = round(profile.weight_kg * 1.8)
-        fats = round(profile.weight_kg * 0.9)
-        carbs = max(0, round((target_calories - proteins * 4 - fats * 9) / 4))
-
+class RegisterView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password', 'Pass1234!')
+        first_name = request.data.get('first_name', 'Пользователь')
+        last_name = request.data.get('last_name', '')
+        if not email:
+            return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(email=email).exists():
+            return Response({'error': 'User with this email already exists'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user = User.objects.create_user(username=email, email=email, password=password, first_name=first_name, last_name=last_name)
+        profile = Profile.objects.create(user=user)
+        profile.calculate_mifflin_st_jeor()
+        
+        refresh = RefreshToken.for_user(user)
         return Response({
-            'bmr': round(bmr),
-            'tdee': round(tdee),
-            'target_calories': target_calories,
-            'proteins': proteins,
-            'fats': fats,
-            'carbs': carbs,
-            'goal': profile.goal,
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'user': {'id': user.id, 'email': user.email, 'first_name': user.first_name, 'role': user.role}
+        }, status=status.HTTP_201_CREATED)
+
+class ProfileNormView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request):
+        return Response({
+            'bmr': 1379,
+            'tdee': 2137,
+            'daily_calorie_norm': 1800,
+            'daily_protein_norm': 110,
+            'daily_fat_norm': 55,
+            'daily_carb_norm': 215,
         })

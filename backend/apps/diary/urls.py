@@ -1,10 +1,6 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import DiaryViewSet
-
-router = DefaultRouter()
-router.register(r'', DiaryViewSet, basename='diary')
+from django.urls import path
+from .views import DiaryListView
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('', DiaryListView.as_view(), name='diary_list'),
 ]

@@ -2,9 +2,17 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from pathlib import Path
 
 def main():
     """Run administrative tasks."""
+    # Ensure backend and its parent directory are on PYTHONPATH
+    current_dir = Path(__file__).resolve().parent
+    if str(current_dir) not in sys.path:
+        sys.path.insert(0, str(current_dir))
+    if str(current_dir.parent) not in sys.path:
+        sys.path.insert(0, str(current_dir.parent))
+
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
     try:
         from django.core.management import execute_from_command_line

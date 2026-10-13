@@ -13,7 +13,6 @@ urlpatterns = [
     path('api/weight/', include('apps.diary.urls_weight')),
     path('api/analytics/', include('apps.analytics.urls')),
     path('api/export/', include('apps.exports.urls')),
-    path('api/admin/', include('apps.admin_panel.urls')),
 ]
 
 if settings.DEBUG:

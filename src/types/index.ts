@@ -1,41 +1,47 @@
-export type UserRole = 'user' | 'admin';
+export type Role = 'user' | 'admin';
 export type AuthProvider = 'email' | 'vk' | 'yandex';
 export type Gender = 'male' | 'female';
 export type ActivityLevel = 'min' | 'low' | 'medium' | 'high' | 'very_high';
-export type NutritionGoal = 'lose' | 'maintain' | 'gain';
+export type Goal = 'lose' | 'maintain' | 'gain';
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
-export type ExportTaskType = 'diary_pdf' | 'recipes_xlsx' | 'analytics_pdf';
-export type ExportStatus = 'pending' | 'processing' | 'done' | 'error';
-export type RecommendationType = 'calories' | 'protein' | 'fat' | 'carbs' | 'weight';
+export type ProductCategory = 
+  | 'vegetables'
+  | 'meat'
+  | 'fish'
+  | 'dairy'
+  | 'grains'
+  | 'fruits'
+  | 'nuts_oils'
+  | 'drinks'
+  | 'bakery_dessert'
+  | 'other';
 
 export interface User {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
-  role: UserRole;
+  role: Role;
   provider: AuthProvider;
   isActive: boolean;
-  isStaff: boolean;
   emailVerified: boolean;
   dateJoined: string;
-  lastLogin?: string;
+  lastLogin: string;
+  avatarUrl?: string;
 }
 
 export interface Profile {
-  id: string;
   userId: string;
   gender: Gender;
   age: number;
   heightCm: number;
   weightKg: number;
   activityLevel: ActivityLevel;
-  goal: NutritionGoal;
+  goal: Goal;
   dailyCalorieNorm: number;
   dailyProteinNorm: number;
   dailyFatNorm: number;
   dailyCarbNorm: number;
-  avatar?: string;
   timezone: string;
   updatedAt: string;
 }
@@ -44,31 +50,19 @@ export interface Product {
   id: string;
   name: string;
   description?: string;
+  category: ProductCategory;
   caloriesPer100g: number;
   proteinsPer100g: number;
   fatsPer100g: number;
   carbsPer100g: number;
-  category: string;
   isGlobal: boolean;
   ownerId?: string | null;
   image?: string;
   source: 'manual' | 'external' | 'admin';
   createdAt: string;
-  updatedAt: string;
 }
 
-export interface Ingredient {
-  id: string;
-  name: string;
-  caloriesPer100g: number;
-  proteinsPer100g: number;
-  fatsPer100g: number;
-  carbsPer100g: number;
-  isGlobal: boolean;
-  ownerId?: string | null;
-}
-
-export interface RecipeIngredientItem {
+export interface RecipeIngredient {
   id: string;
   productId: string;
   productName: string;
@@ -99,9 +93,11 @@ export interface Recipe {
   proteinsPerServing: number;
   fatsPerServing: number;
   carbsPerServing: number;
+  ingredients: RecipeIngredient[];
   image?: string;
   isPublic: boolean;
-  ingredients: RecipeIngredientItem[];
+  cookTimeMinutes?: number;
+  instructions?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -111,11 +107,10 @@ export interface DiaryEntry {
   userId: string;
   date: string; // YYYY-MM-DD
   mealType: MealType;
-  itemType: 'product' | 'recipe';
-  productId?: string;
-  recipeId?: string;
-  name: string;
-  amountG: number;
+  productId?: string | null;
+  productName: string;
+  recipeId?: string | null;
+  amountG?: number;
   servings?: number;
   calories: number;
   proteins: number;
@@ -136,7 +131,8 @@ export interface Recommendation {
   id: string;
   userId: string;
   date: string;
-  type: RecommendationType;
+  type: 'calories' | 'protein' | 'fat' | 'carbs' | 'weight';
+  severity: 'info' | 'warning' | 'success';
   message: string;
   isRead: boolean;
 }
@@ -144,10 +140,10 @@ export interface Recommendation {
 export interface ExportTask {
   id: string;
   userId: string;
-  exportType: ExportTaskType;
+  exportType: 'diary_pdf' | 'recipes_xlsx' | 'analytics_pdf';
   periodStart: string;
   periodEnd: string;
-  status: ExportStatus;
+  status: 'pending' | 'processing' | 'done' | 'error';
   filePath?: string;
   createdAt: string;
 }
@@ -156,9 +152,8 @@ export interface Backup {
   id: string;
   createdById: string;
   createdByName: string;
-  filePath: string;
-  sizeBytes: number;
-  status: 'completed' | 'uploading' | 'failed';
-  yandexDiskSynced: boolean;
+  filename: string;
+  sizeMb: number;
+  status: 'created' | 'synced_yandex_disk' | 'restored';
   createdAt: string;
 }

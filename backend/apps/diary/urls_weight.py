@@ -1,10 +1,6 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import WeightViewSet
-
-router = DefaultRouter()
-router.register(r'', WeightViewSet, basename='weight')
+from django.urls import path
+from .views import WeightListView
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('', WeightListView.as_view(), name='weight_list'),
 ]

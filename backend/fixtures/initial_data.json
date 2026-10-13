@@ -1,0 +1,76 @@
+[
+  {
+    "model": "users.user",
+    "pk": 1,
+    "fields": {
+      "email": "alexandra@pureshque.ru",
+      "username": "alexandra",
+      "first_name": "Александра",
+      "last_name": "Смирнова",
+      "role": "user",
+      "provider": "email",
+      "is_active": true,
+      "email_verified": true,
+      "date_joined": "2026-09-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "users.profile",
+    "pk": 1,
+    "fields": {
+      "user": 1,
+      "gender": "female",
+      "age": 26,
+      "height_cm": 168.0,
+      "weight_kg": 62.0,
+      "activity_level": "medium",
+      "goal": "lose",
+      "daily_calorie_norm": 1800,
+      "daily_protein_norm": 110.0,
+      "daily_fat_norm": 55.0,
+      "daily_carb_norm": 215.0
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 1,
+    "fields": {
+      "name": "Куриное филе (грудка)",
+      "category": "meat",
+      "calories_per_100g": 113.0,
+      "proteins_per_100g": 23.6,
+      "fats_per_100g": 1.9,
+      "carbs_per_100g": 0.4,
+      "is_global": true,
+      "source": "admin"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 2,
+    "fields": {
+      "name": "Овсяные хлопья \"Геркулес\"",
+      "category": "grains",
+      "calories_per_100g": 352.0,
+      "proteins_per_100g": 12.3,
+      "fats_per_100g": 6.2,
+      "carbs_per_100g": 61.8,
+      "is_global": true,
+      "source": "admin"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 3,
+    "fields": {
+      "name": "Творог 5%",
+      "category": "dairy",
+      "calories_per_100g": 121.0,
+      "proteins_per_100g": 17.2,
+      "fats_per_100g": 5.0,
+      "carbs_per_100g": 1.8,
+      "is_global": true,
+      "source": "admin"
+    }
+  }
+]
