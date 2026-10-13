@@ -1,0 +1,6 @@
+{
+  "name": "Pureshque - Сервис планирования и анализа питания",
+  "description": "Веб-сервис для расчёта КБЖУ блюд, ведения дневника питания, отслеживания веса и глубокого анализа рациона",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
