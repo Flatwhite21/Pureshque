@@ -70,7 +70,15 @@ export const StorageService = {
   },
 
   getProducts(): Product[] {
-    return getStorageItem(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS);
+    const list = getStorageItem(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS);
+    const initialMap = new Map(INITIAL_PRODUCTS.map((p) => [p.id, p]));
+    return list.map((p) => {
+      const initial = initialMap.get(p.id);
+      return {
+        ...p,
+        image: (initial?.image && initial.image.startsWith('/src/assets/images')) ? initial.image : (p.image || initial?.image),
+      };
+    });
   },
 
   setProducts(products: Product[]): void {
@@ -78,7 +86,22 @@ export const StorageService = {
   },
 
   getRecipes(): Recipe[] {
-    return getStorageItem(STORAGE_KEYS.RECIPES, INITIAL_RECIPES);
+    const list = getStorageItem(STORAGE_KEYS.RECIPES, INITIAL_RECIPES);
+    const initialMap = new Map(INITIAL_RECIPES.map((r) => [r.id, r]));
+    const existingIds = new Set(list.map((r) => r.id));
+    const merged = [...list];
+    INITIAL_RECIPES.forEach((ir) => {
+      if (!existingIds.has(ir.id)) {
+        merged.push(ir);
+      }
+    });
+    return merged.map((r) => {
+      const initial = initialMap.get(r.id);
+      return {
+        ...r,
+        image: (initial?.image && initial.image.startsWith('/src/assets/images')) ? initial.image : (r.image || initial?.image),
+      };
+    });
   },
 
   setRecipes(recipes: Recipe[]): void {
@@ -86,7 +109,15 @@ export const StorageService = {
   },
 
   getDiary(): DiaryEntry[] {
-    return getStorageItem(STORAGE_KEYS.DIARY, INITIAL_DIARY);
+    const list = getStorageItem(STORAGE_KEYS.DIARY, INITIAL_DIARY);
+    const initialMap = new Map(INITIAL_DIARY.map((d) => [d.id, d]));
+    return list.map((d) => {
+      const initial = initialMap.get(d.id);
+      return {
+        ...d,
+        image: (initial?.image && initial.image.startsWith('/src/assets/images')) ? initial.image : (d.image || initial?.image),
+      };
+    });
   },
 
   setDiary(entries: DiaryEntry[]): void {

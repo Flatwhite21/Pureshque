@@ -105,6 +105,7 @@ export const Recipes: React.FC<RecipesProps> = ({
       ingredients,
       isPublic,
       cookTimeMinutes: Number(cookTime),
+      image: '/src/assets/images/food_healthy_ingredients_1792075778151.jpg',
     });
 
     setBuilderOpen(false);
@@ -205,31 +206,56 @@ export const Recipes: React.FC<RecipesProps> = ({
             }}
             className="bg-white rounded-2xl border border-[#E0E7DE] hover:border-[#81C784] hover:shadow-md transition-all cursor-pointer flex flex-col justify-between overflow-hidden group"
           >
-            <div className="p-5">
-              <div className="flex items-center justify-between text-xs text-[#718096] mb-2">
-                <span className="flex items-center gap-1 font-medium">
-                  <Clock className="w-3.5 h-3.5 text-[#4CAF50]" />
+            {/* Dish Image */}
+            <div className="relative h-44 w-full overflow-hidden bg-[#F0F4EF]">
+              {recipe.image ? (
+                <img
+                  src={recipe.image}
+                  alt={recipe.title}
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-[#E8F5E9] to-[#C8E6C9]">
+                  <ChefHat className="w-10 h-10 text-[#4CAF50]/60" />
+                </div>
+              )}
+              <div className="absolute top-2.5 left-2.5">
+                <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-white/95 backdrop-blur-xs text-[#2E7D32] shadow-xs">
                   {recipe.cookTimeMinutes || 20} мин
                 </span>
-                <span className="flex items-center gap-1 font-medium">
-                  <Users className="w-3.5 h-3.5 text-[#4CAF50]" />
-                  {recipe.servings} порц.
-                </span>
-                <span className="text-[11px] text-[#A0AEC0]">Автор: {recipe.authorName}</span>
               </div>
+              <div className="absolute top-2.5 right-2.5">
+                <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-white/95 backdrop-blur-xs text-[#1B5E20] shadow-xs">
+                  {recipe.caloriesPerServing} ккал / порц.
+                </span>
+              </div>
+            </div>
 
-              <h3 className="font-bold text-lg text-[#2D3748] group-hover:text-[#1B5E20] transition-colors leading-snug">
-                {recipe.title}
-              </h3>
-              <p className="text-xs text-[#718096] line-clamp-2 mt-1 leading-relaxed">
-                {recipe.description}
-              </p>
+            <div className="p-5 flex-1 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between text-xs text-[#718096] mb-2">
+                  <span className="flex items-center gap-1 font-medium">
+                    <Users className="w-3.5 h-3.5 text-[#4CAF50]" />
+                    {recipe.servings} порц.
+                  </span>
+                  <span className="text-[11px] text-[#A0AEC0]">Автор: {recipe.authorName}</span>
+                </div>
 
-              <div className="mt-4 flex items-center gap-2 text-xs text-[#4A5568]">
-                <Utensils className="w-3.5 h-3.5 text-[#81C784]" />
-                <span>Ингредиентов: <strong>{recipe.ingredients.length}</strong></span>
-                <span className="text-[#CBD5E0]">&bull;</span>
-                <span>Общий вес: <strong>{recipe.totalWeightG}г</strong></span>
+                <h3 className="font-bold text-lg text-[#2D3748] group-hover:text-[#1B5E20] transition-colors leading-snug">
+                  {recipe.title}
+                </h3>
+                <p className="text-xs text-[#718096] line-clamp-2 mt-1 leading-relaxed">
+                  {recipe.description}
+                </p>
+
+                <div className="mt-4 flex items-center gap-2 text-xs text-[#4A5568]">
+                  <Utensils className="w-3.5 h-3.5 text-[#81C784]" />
+                  <span>Ингредиентов: <strong>{recipe.ingredients.length}</strong></span>
+                  <span className="text-[#CBD5E0]">&bull;</span>
+                  <span>Общий вес: <strong>{recipe.totalWeightG}г</strong></span>
+                </div>
               </div>
             </div>
 
@@ -273,6 +299,17 @@ export const Recipes: React.FC<RecipesProps> = ({
       {selectedRecipe && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#CBD5E1] max-h-[90vh] overflow-y-auto animate-in fade-in-50 zoom-in-95 duration-150">
+            {selectedRecipe.image && (
+              <div className="relative h-48 w-full -mt-6 -mx-6 mb-4 overflow-hidden rounded-t-2xl bg-[#F0F4EF]" style={{ width: 'calc(100% + 3rem)' }}>
+                <img
+                  src={selectedRecipe.image}
+                  alt={selectedRecipe.title}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+            )}
             <div className="flex items-start justify-between pb-3 border-b border-[#EDF2F7]">
               <div>
                 <h3 className="text-xl font-bold text-[#1A202C]">{selectedRecipe.title}</h3>

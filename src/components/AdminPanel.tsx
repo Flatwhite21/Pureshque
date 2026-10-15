@@ -71,7 +71,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         <div>
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#E65100] mb-1">
             <ShieldCheck className="w-4 h-4 text-[#FB8C00]" />
-            Система администрирования Pureshque (Лабораторные работы 1, 4)
+            Система администрирования Pureshque
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#BF360C]">
             Панель управления проектом

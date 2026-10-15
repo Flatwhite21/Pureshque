@@ -55,7 +55,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </h1>
 
         <p className="text-lg sm:text-xl text-[#546E7A] max-w-2xl mx-auto font-normal leading-relaxed">
-          Точный расчёт калорий блюд по граммам, дневник питания по приёмам пищи, автоматический баланс белков, жиров и углеводов по формуле Миффлина-Сан Жеора.
+          Точный расчёт калорий блюд по граммам, дневник питания по приёмам пищи, автоматический баланс белков, жиров и углеводов для достижения ваших персональных целей.
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
@@ -87,7 +87,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Узнайте свою суточную норму калорий прямо сейчас
             </h2>
             <p className="text-xs text-[#718096] mt-1">
-              Расчет по клинической формуле Миффлина-Сан Жеора
+              Индивидуальный расчет с учетом метаболизма, физической активности и параметров тела
             </p>
           </div>
 

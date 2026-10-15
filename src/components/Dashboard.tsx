@@ -329,10 +329,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
               todayEntries.map((entry) => (
                 <div
                   key={entry.id}
-                  className="flex items-center justify-between p-3.5 rounded-xl bg-[#FAF8F5] border border-[#EAEFE8] hover:border-[#C8E6C9] transition-all"
+                  className="flex items-center justify-between p-3.5 rounded-xl bg-[#FAF8F5] border border-[#EAEFE8] hover:border-[#C8E6C9] hover:bg-white transition-all shadow-2xs"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#4CAF50]"></span>
+                    {entry.image ? (
+                      <img
+                        src={entry.image}
+                        alt={entry.productName}
+                        className="w-12 h-12 rounded-xl object-cover shrink-0 border border-[#E0E7DE] shadow-2xs"
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-[#E8F5E9] text-[#2E7D32] flex items-center justify-center font-bold text-xs shrink-0">
+                        <Apple className="w-5 h-5 text-[#4CAF50]" />
+                      </div>
+                    )}
                     <div>
                       <div className="font-semibold text-sm text-[#2D3748]">{entry.productName}</div>
                       <div className="text-xs text-[#718096]">
@@ -340,16 +352,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         {entry.mealType === 'lunch' && 'Обед'}
                         {entry.mealType === 'dinner' && 'Ужин'}
                         {entry.mealType === 'snack' && 'Перекус'}
-                        {' &bull; '}
+                        {' · '}
                         {entry.amountG ? `${entry.amountG} г` : `${entry.servings} порц.`}
                       </div>
                     </div>
                   </div>
 
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <div className="font-bold text-sm text-[#1B5E20]">{Math.round(entry.calories)} ккал</div>
                     <div className="text-[11px] text-[#718096]">
-                      Б: {entry.proteins.toFixed(0)}г &bull; Ж: {entry.fats.toFixed(0)}г &bull; У: {entry.carbs.toFixed(0)}г
+                      Б: {entry.proteins.toFixed(0)}г · Ж: {entry.fats.toFixed(0)}г · У: {entry.carbs.toFixed(0)}г
                     </div>
                   </div>
                 </div>
@@ -401,7 +413,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
 
             <div className="mt-5 p-3 rounded-xl bg-[#FFFDE7] border border-[#FFF59D] text-[11px] text-[#795548] leading-relaxed">
-              <strong>Обратите внимание:</strong> Автоматические расчеты формируются по формуле Миффлина-Сан Жеора и носят ознакомительный характер.
+              <strong>Обратите внимание:</strong> Автоматические расчеты калорийности и макронутриентов носят персональный рекомендательный характер.
             </div>
           </div>
 

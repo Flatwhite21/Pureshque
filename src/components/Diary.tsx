@@ -103,6 +103,7 @@ export const Diary: React.FC<DiaryProps> = ({
         proteins: nutrients.proteins,
         fats: nutrients.fats,
         carbs: nutrients.carbs,
+        image: selectedProduct.image,
       });
     } else if (addMode === 'recipe' && selectedRecipe) {
       onAddEntry({
@@ -116,6 +117,7 @@ export const Diary: React.FC<DiaryProps> = ({
         proteins: Math.round(selectedRecipe.proteinsPerServing * recipeServings * 10) / 10,
         fats: Math.round(selectedRecipe.fatsPerServing * recipeServings * 10) / 10,
         carbs: Math.round(selectedRecipe.carbsPerServing * recipeServings * 10) / 10,
+        image: selectedRecipe.image,
       });
     } else if (addMode === 'custom' && customName.trim()) {
       onAddEntry({
@@ -315,39 +317,61 @@ export const Diary: React.FC<DiaryProps> = ({
                     Ничего не добавлено в этот приём пищи.
                   </div>
                 ) : (
-                  mealEntries.map((item) => (
-                    <div
-                      key={item.id}
-                      className="px-6 py-3.5 flex items-center justify-between hover:bg-[#FDFBF7] transition-colors"
-                    >
-                      <div className="flex-1 pr-4">
-                        <div className="font-semibold text-sm text-[#2D3748]">{item.productName}</div>
-                        <div className="text-xs text-[#718096]">
-                          {item.amountG ? `${item.amountG} г` : `${item.servings} порц.`}
-                          <span className="mx-2 text-[#CBD5E0]">&bull;</span>
-                          <span>Б: {item.proteins}г</span>
-                          <span className="mx-1.5 text-[#CBD5E0]">&bull;</span>
-                          <span>Ж: {item.fats}г</span>
-                          <span className="mx-1.5 text-[#CBD5E0]">&bull;</span>
-                          <span>У: {item.carbs}г</span>
-                        </div>
-                      </div>
+                  mealEntries.map((item) => {
+                    const itemImage =
+                      item.image ||
+                      recipes.find((r) => r.id === item.recipeId || r.title === item.productName)?.image ||
+                      products.find((p) => p.id === item.productId || p.name === item.productName)?.image;
 
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <span className="font-bold text-sm text-[#1B5E20]">{Math.round(item.calories)}</span>
-                          <span className="text-xs text-[#718096] ml-1">ккал</span>
+                    return (
+                      <div
+                        key={item.id}
+                        className="px-6 py-3.5 flex items-center justify-between hover:bg-[#FDFBF7] transition-colors"
+                      >
+                        <div className="flex items-center gap-3.5 flex-1 pr-4">
+                          {itemImage ? (
+                            <img
+                              src={itemImage}
+                              alt={item.productName}
+                              className="w-12 h-12 rounded-xl object-cover shrink-0 border border-[#E0E7DE] shadow-2xs"
+                              loading="lazy"
+                              referrerPolicy="no-referrer"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-xl bg-[#E8F5E9] text-[#2E7D32] flex items-center justify-center font-bold text-xs shrink-0 border border-[#C8E6C9]">
+                              <Apple className="w-5 h-5 text-[#4CAF50]" />
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-semibold text-sm text-[#2D3748]">{item.productName}</div>
+                            <div className="text-xs text-[#718096]">
+                              {item.amountG ? `${item.amountG} г` : `${item.servings} порц.`}
+                              <span className="mx-2 text-[#CBD5E0]">&bull;</span>
+                              <span>Б: {item.proteins}г</span>
+                              <span className="mx-1.5 text-[#CBD5E0]">&bull;</span>
+                              <span>Ж: {item.fats}г</span>
+                              <span className="mx-1.5 text-[#CBD5E0]">&bull;</span>
+                              <span>У: {item.carbs}г</span>
+                            </div>
+                          </div>
                         </div>
-                        <button
-                          onClick={() => onDeleteEntry(item.id)}
-                          className="p-1.5 rounded-lg text-[#CBD5E0] hover:text-[#E53E3E] hover:bg-[#FFF5F5] transition-colors"
-                          title="Удалить запись"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+
+                        <div className="flex items-center gap-4 shrink-0">
+                          <div className="text-right">
+                            <span className="font-bold text-sm text-[#1B5E20]">{Math.round(item.calories)}</span>
+                            <span className="text-xs text-[#718096] ml-1">ккал</span>
+                          </div>
+                          <button
+                            onClick={() => onDeleteEntry(item.id)}
+                            className="p-1.5 rounded-lg text-[#CBD5E0] hover:text-[#E53E3E] hover:bg-[#FFF5F5] transition-colors"
+                            title="Удалить запись"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>
@@ -428,17 +452,31 @@ export const Diary: React.FC<DiaryProps> = ({
                     </div>
                   </div>
 
-                  <div className="max-h-36 overflow-y-auto border border-[#E2E8F0] rounded-xl divide-y divide-[#F1F5F9]">
+                  <div className="max-h-48 overflow-y-auto border border-[#E2E8F0] rounded-xl divide-y divide-[#F1F5F9]">
                     {filteredProducts.slice(0, 8).map((p) => (
                       <div
                         key={p.id}
                         onClick={() => setSelectedProduct(p)}
-                        className={`p-2.5 text-xs cursor-pointer flex justify-between items-center ${
+                        className={`p-2 text-xs cursor-pointer flex justify-between items-center transition-colors ${
                           selectedProduct?.id === p.id ? 'bg-[#E8F5E9] text-[#1B5E20] font-semibold' : 'hover:bg-[#F8FAFC]'
                         }`}
                       >
-                        <span>{p.name}</span>
-                        <span className="text-[#64748B]">{p.caloriesPer100g} ккал / 100г</span>
+                        <div className="flex items-center gap-2.5">
+                          {p.image ? (
+                            <img
+                              src={p.image}
+                              alt={p.name}
+                              className="w-8 h-8 rounded-lg object-cover shrink-0 border border-[#E2E8F0]"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-lg bg-[#E8F5E9] flex items-center justify-center shrink-0">
+                              <Apple className="w-4 h-4 text-[#4CAF50]" />
+                            </div>
+                          )}
+                          <span className="font-medium text-[#2D3748]">{p.name}</span>
+                        </div>
+                        <span className="text-[#64748B] text-[11px] shrink-0">{p.caloriesPer100g} ккал / 100г</span>
                       </div>
                     ))}
                   </div>
@@ -494,6 +532,17 @@ export const Diary: React.FC<DiaryProps> = ({
 
                   {selectedRecipe && (
                     <div className="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAEFE8] space-y-2">
+                      {selectedRecipe.image && (
+                        <div className="h-32 w-full rounded-xl overflow-hidden mb-2">
+                          <img
+                            src={selectedRecipe.image}
+                            alt={selectedRecipe.title}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            referrerPolicy="no-referrer"
+                          />
+                        </div>
+                      )}
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-semibold text-[#2D3748]">Количество порций:</span>
                         <input

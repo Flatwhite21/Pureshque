@@ -116,6 +116,7 @@ export interface DiaryEntry {
   proteins: number;
   fats: number;
   carbs: number;
+  image?: string;
   createdAt: string;
 }
 

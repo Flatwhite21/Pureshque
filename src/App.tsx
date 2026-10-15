@@ -3,7 +3,6 @@ import confetti from 'canvas-confetti';
 import { AdminPanel } from './components/AdminPanel';
 import { Analytics } from './components/Analytics';
 import { AuthModal } from './components/AuthModal';
-import { CodeInspector } from './components/CodeInspector';
 import { Dashboard } from './components/Dashboard';
 import { Diary } from './components/Diary';
 import { Export } from './components/Export';
@@ -484,9 +483,6 @@ export default function App() {
             )}
           </>
         )}
-
-        {/* Lab Architecture & Code Inspector */}
-        {activeTab === 'code' && <CodeInspector />}
       </main>
 
       {/* Global Footer */}

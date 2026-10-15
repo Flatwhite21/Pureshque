@@ -4,7 +4,6 @@ import {
   BookOpen,
   Calendar,
   ChefHat,
-  Code2,
   Download,
   Flame,
   LayoutDashboard,
@@ -107,19 +106,6 @@ export const Header: React.FC<HeaderProps> = ({
                   Админ-панель
                 </button>
               )}
-
-              <button
-                onClick={() => handleNav('code')}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === 'code'
-                    ? 'bg-[#E3F2FD] text-[#0D47A1] font-semibold ring-1 ring-[#90CAF9]'
-                    : 'text-[#1E40AF] hover:bg-[#EFF6FF]'
-                }`}
-                title="Архитектура проекта и код бэкенда (ЛР 1-5)"
-              >
-                <Code2 className="w-4 h-4 text-[#1976D2]" />
-                Архитектура ЛР
-              </button>
             </nav>
           )}
 
@@ -278,13 +264,6 @@ export const Header: React.FC<HeaderProps> = ({
                   Панель администратора
                 </button>
               )}
-              <button
-                onClick={() => handleNav('code')}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#1E40AF] hover:bg-[#EFF6FF]"
-              >
-                <Code2 className="w-5 h-5 text-[#1976D2]" />
-                Архитектура & Код (ЛР 1-5)
-              </button>
             </>
           ) : (
             <div className="py-2">

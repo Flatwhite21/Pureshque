@@ -99,7 +99,7 @@ export const ProfileView: React.FC<ProfileProps> = ({
 
         <button
           onClick={() => {
-            if (confirm('Сбросить данные к эталонным для лабораторной работы?')) {
+            if (confirm('Сбросить данные профиля и дневника к начальным значениям?')) {
               onResetData();
             }
           }}
@@ -258,11 +258,11 @@ export const ProfileView: React.FC<ProfileProps> = ({
           <div className="bg-[#FAF8F5] rounded-2xl p-6 border border-[#E0E7DE] shadow-xs space-y-4">
             <div className="flex items-center gap-2 text-[#1B5E20]">
               <Sparkles className="w-5 h-5 text-[#4CAF50]" />
-              <h3 className="font-bold text-base text-[#1A202C]">Формула Миффлина-Сан Жеора</h3>
+              <h3 className="font-bold text-base text-[#1A202C]">Расчет суточного метаболизма и энергии</h3>
             </div>
 
             <p className="text-xs text-[#546E7A] leading-relaxed">
-              Золотой стандарт клинической диетологии для расчета базового обмена веществ (BMR):
+              Индивидуальный расчет основного обмена веществ (BMR) и суточных энергозатрат (TDEE):
             </p>
 
             <div className="p-3 bg-white rounded-xl border border-[#E2E8F0] space-y-2 text-xs">

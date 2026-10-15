@@ -198,7 +198,7 @@ export const Products: React.FC<ProductsProps> = ({
       </div>
 
       {/* Products Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {filteredProducts.map((p) => (
           <div
             key={p.id}
@@ -206,54 +206,73 @@ export const Products: React.FC<ProductsProps> = ({
               setSelectedProduct(p);
               setTestGrams(100);
             }}
-            className="bg-white rounded-2xl p-5 border border-[#E0E7DE] hover:border-[#81C784] hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
+            className="bg-white rounded-2xl border border-[#E0E7DE] hover:border-[#81C784] hover:shadow-md transition-all cursor-pointer flex flex-col justify-between overflow-hidden group"
           >
-            <div>
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#F1F8E9] text-[#2E7D32]">
+            {/* Product Image Header */}
+            <div className="relative h-36 w-full overflow-hidden bg-[#F0F4EF]">
+              {p.image ? (
+                <img
+                  src={p.image}
+                  alt={p.name}
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-[#E8F5E9] to-[#C8E6C9]">
+                  <Apple className="w-10 h-10 text-[#4CAF50]/60" />
+                </div>
+              )}
+              <div className="absolute top-2.5 left-2.5">
+                <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-white/95 backdrop-blur-xs text-[#2E7D32] shadow-xs">
                   {CATEGORIES.find((c) => c.key === p.category)?.label || 'Прочее'}
                 </span>
+              </div>
+              <div className="absolute top-2.5 right-2.5">
                 {p.ownerId === currentUser?.id ? (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FFF3E0] text-[#E65100] font-medium">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#FFF3E0]/95 backdrop-blur-xs text-[#E65100] font-bold shadow-xs">
                     Мой
                   </span>
                 ) : (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#F5F5F5] text-[#757575]">
-                    База
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/90 backdrop-blur-xs text-[#546E7A] font-medium shadow-xs">
+                    Базовый
                   </span>
                 )}
               </div>
-
-              <h3 className="font-bold text-base text-[#2D3748] group-hover:text-[#1B5E20] transition-colors leading-snug">
-                {p.name}
-              </h3>
-              {p.description && (
-                <p className="text-xs text-[#718096] line-clamp-2 mt-1 leading-relaxed">
-                  {p.description}
-                </p>
-              )}
             </div>
 
-            <div className="mt-4 pt-3 border-t border-[#F0F4EF]">
-              <div className="flex items-baseline justify-between mb-2">
-                <span className="text-xs text-[#718096]">КБЖУ на 100 г:</span>
-                <span className="font-extrabold text-base text-[#1B5E20]">
-                  {p.caloriesPer100g} <span className="text-xs font-normal">ккал</span>
-                </span>
+            <div className="p-4 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 className="font-bold text-base text-[#2D3748] group-hover:text-[#1B5E20] transition-colors leading-snug line-clamp-1">
+                  {p.name}
+                </h3>
+                {p.description && (
+                  <p className="text-xs text-[#718096] line-clamp-2 mt-1 leading-relaxed">
+                    {p.description}
+                  </p>
+                )}
               </div>
 
-              <div className="grid grid-cols-3 gap-1 text-center text-[11px] bg-[#FAF8F5] p-1.5 rounded-xl border border-[#EAEFE8]">
-                <div>
-                  <span className="block text-[#1565C0] font-semibold">Б</span>
-                  <span className="font-medium text-[#37474F]">{p.proteinsPer100g}г</span>
+              <div className="mt-4 pt-3 border-t border-[#F0F4EF]">
+                <div className="flex items-baseline justify-between mb-2">
+                  <span className="text-xs text-[#718096]">КБЖУ на 100 г:</span>
+                  <span className="font-extrabold text-base text-[#1B5E20]">
+                    {p.caloriesPer100g} <span className="text-xs font-normal">ккал</span>
+                  </span>
                 </div>
-                <div>
-                  <span className="block text-[#E65100] font-semibold">Ж</span>
-                  <span className="font-medium text-[#37474F]">{p.fatsPer100g}г</span>
-                </div>
-                <div>
-                  <span className="block text-[#2E7D32] font-semibold">У</span>
-                  <span className="font-medium text-[#37474F]">{p.carbsPer100g}г</span>
+
+                <div className="grid grid-cols-3 gap-1 text-center text-[11px] bg-[#FAF8F5] p-1.5 rounded-xl border border-[#EAEFE8]">
+                  <div>
+                    <span className="block text-[#1565C0] font-semibold">Б</span>
+                    <span className="font-medium text-[#37474F]">{p.proteinsPer100g}г</span>
+                  </div>
+                  <div>
+                    <span className="block text-[#E65100] font-semibold">Ж</span>
+                    <span className="font-medium text-[#37474F]">{p.fatsPer100g}г</span>
+                  </div>
+                  <div>
+                    <span className="block text-[#2E7D32] font-semibold">У</span>
+                    <span className="font-medium text-[#37474F]">{p.carbsPer100g}г</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -274,7 +293,18 @@ export const Products: React.FC<ProductsProps> = ({
       {/* Product Detail Modal */}
       {selectedProduct && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#CBD5E1] animate-in fade-in-50 zoom-in-95 duration-150">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#CBD5E1] animate-in fade-in-50 zoom-in-95 duration-150 overflow-hidden">
+            {selectedProduct.image && (
+              <div className="relative h-44 w-full -mt-6 -mx-6 mb-4 overflow-hidden bg-[#F0F4EF]" style={{ width: 'calc(100% + 3rem)' }}>
+                <img
+                  src={selectedProduct.image}
+                  alt={selectedProduct.name}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+            )}
             <div className="flex items-start justify-between pb-3 border-b border-[#EDF2F7]">
               <div>
                 <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#E8F5E9] text-[#2E7D32]">
