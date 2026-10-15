@@ -1,6 +1,6 @@
 # Pureshque — Веб-платформа для расчёта КБЖУ, ведения дневника питания и анализа рациона
 
-> **Учебный проект / Лабораторные работы №1, №4, №5**  
+> **Учебный проект 
 > Тематика: Веб-сервис для расчёта КБЖУ блюд, ведения дневника питания, отслеживания веса и глубокого анализа рациона.
 
 ---
@@ -24,16 +24,10 @@
 
 ### 🐳 Вариант 1. Запуск через Docker (Рекомендуемый)
 
-Убедитесь, что запущен **Docker Desktop**, откройте PowerShell в корневой папке проекта (`C:\Users\Sanya\Desktop\Pureshque`):
-
 ```powershell
-# 1. Скопировать переменные окружения
 Copy-Item .env.example .env
-
-# 2. Запустить все сервисы (PostgreSQL, Redis, Django, Celery, Frontend)
 docker compose up --build
 ```
-> Примечание: в современном Docker Desktop используется команда `docker compose` (через пробел).
 
 После запуска сервисы доступны по адресам:
 * **Веб-интерфейс (Frontend):** [http://localhost:3000](http://localhost:3000)
@@ -45,10 +39,7 @@ docker compose up --build
 ### 💻 Вариант 2. Локальный запуск без Docker (Windows PowerShell)
 
 #### 1. Запуск Frontend (из корневой папки проекта!):
-Обратите внимание: файл `package.json` находится в **корне проекта** (`C:\Users\Sanya\Desktop\Pureshque`), а не в папке `backend`.
-
 ```powershell
-cd C:\Users\Sanya\Desktop\Pureshque
 npm install
 npm run dev
 ```
@@ -58,8 +49,6 @@ npm run dev
 Откройте второе окно PowerShell:
 
 ```powershell
-cd C:\Users\Sanya\Desktop\Pureshque\backend
-
 # Создание виртуального окружения
 python -m venv venv
 
@@ -87,6 +76,5 @@ python -m pytest tests/
 
 #### 4. Проверка типов и линтинга (Frontend):
 ```powershell
-cd C:\Users\Sanya\Desktop\Pureshque
 npm run lint
 ```
